@@ -1,26 +1,6 @@
 <?php
-// Koneksi Database
-$db_host = "localhost";
-$db_user = "root";
-$db_pass = "";
-$db_name = "db_konseling_kampus";
-
-$conn = mysqli_connect($db_host, $db_user, $db_pass, $db_name);
-if (!$conn) {
-    die("Koneksi database gagal: " . mysqli_connect_error());
-}
-
-// Konfigurasi Enkripsi Simetris
-define('SYSTEM_SYMMETRIC_KEY', 'KAMPUS-RAHASIA-2026');
-define('CIPHER_METHOD', 'AES-256-CBC');
-
-function enkripsiData($plaintext, $key) {
-    $key_hash = hash('sha256', $key, true);
-    $iv_length = openssl_cipher_iv_length(CIPHER_METHOD);
-    $iv = openssl_random_pseudo_bytes($iv_length);
-    $encrypted = openssl_encrypt($plaintext, CIPHER_METHOD, $key_hash, OPENSSL_RAW_DATA, $iv);
-    return base64_encode($iv . $encrypted);
-}
+// Panggil file konfigurasi dan fungsi
+include 'config.php';
 
 // Data awal otomatis jika tabel masih kosong
 $cek_isi = mysqli_query($conn, "SELECT COUNT(*) AS total FROM pengaduan_konseling");
@@ -51,13 +31,13 @@ if ($row_isi['total'] == 0) {
 
     $stmt_seed = mysqli_prepare($conn, "INSERT INTO pengaduan_konseling (kode_tiket, nama_mahasiswa, nim, kontak, kategori, isi_keluhan, catatan_konselor, status_penanganan) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
     foreach ($sample_data as $item) {
-        $n = enkripsiData($item['nama'], SYSTEM_SYMMETRIC_KEY);
+        $n   = enkripsiData($item['nama'], SYSTEM_SYMMETRIC_KEY);
         $nim = enkripsiData($item['nim'], SYSTEM_SYMMETRIC_KEY);
-        $k = enkripsiData($item['kontak'], SYSTEM_SYMMETRIC_KEY);
+        $k   = enkripsiData($item['kontak'], SYSTEM_SYMMETRIC_KEY);
         $kat = enkripsiData($item['kategori'], SYSTEM_SYMMETRIC_KEY);
         $kel = enkripsiData($item['keluhan'], SYSTEM_SYMMETRIC_KEY);
         $cat = enkripsiData($item['catatan'], SYSTEM_SYMMETRIC_KEY);
-        $st = enkripsiData($item['status'], SYSTEM_SYMMETRIC_KEY);
+        $st  = enkripsiData($item['status'], SYSTEM_SYMMETRIC_KEY);
         mysqli_stmt_bind_param($stmt_seed, "ssssssss", $item['tiket'], $n, $nim, $k, $kat, $kel, $cat, $st);
         mysqli_stmt_execute($stmt_seed);
     }

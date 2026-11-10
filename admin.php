@@ -1,46 +1,8 @@
 <?php
 session_start();
 
-$db_host = "localhost";
-$db_user = "root";
-$db_pass = "";
-$db_name = "db_konseling_kampus";
-
-$conn = mysqli_connect($db_host, $db_user, $db_pass, $db_name);
-if (!$conn) {
-    die("Koneksi database gagal: " . mysqli_connect_error());
-}
-
-define('CIPHER_METHOD', 'AES-256-CBC');
-
-function enkripsiData($plaintext, $key) {
-    $key_hash = hash('sha256', $key, true);
-    $iv_length = openssl_cipher_iv_length(CIPHER_METHOD);
-    $iv = openssl_random_pseudo_bytes($iv_length);
-    $encrypted = openssl_encrypt($plaintext, CIPHER_METHOD, $key_hash, OPENSSL_RAW_DATA, $iv);
-    return base64_encode($iv . $encrypted);
-}
-
-function dekripsiData($ciphertext_base64, $input_key) {
-    $decoded = base64_decode($ciphertext_base64, true);
-    $iv_length = openssl_cipher_iv_length(CIPHER_METHOD);
-
-    if ($decoded === false || strlen($decoded) <= $iv_length) {
-        return ['berhasil' => false, 'hasil' => $ciphertext_base64];
-    }
-
-    $iv = substr($decoded, 0, $iv_length);
-    $encrypted_raw = substr($decoded, $iv_length);
-    $key_hash = hash('sha256', $input_key, true);
-
-    $decrypted = openssl_decrypt($encrypted_raw, CIPHER_METHOD, $key_hash, OPENSSL_RAW_DATA, $iv);
-
-    if ($decrypted === false) {
-        return ['berhasil' => false, 'hasil' => $ciphertext_base64];
-    }
-
-    return ['berhasil' => true, 'hasil' => $decrypted];
-}
+// Panggil file konfigurasi dan fungsi
+include 'config.php';
 
 // Proses Masuk dengan Kunci Dekripsi
 if (isset($_POST['masuk_dengan_kunci'])) {
@@ -90,17 +52,17 @@ if ($active_key !== null) {
         }
 
         $daftar_laporan[] = [
-            'id'        => $row['id'],
-            'tiket'     => $row['kode_tiket'],
-            'tanggal'   => date("d M Y, H:i", strtotime($row['tanggal_lapor'])),
-            'nama'      => $dek_nama['hasil'],
-            'nim'       => $dek_nim['hasil'],
-            'kontak'    => $dek_kontak['hasil'],
-            'kategori'  => $dek_kategori['hasil'],
-            'keluhan'   => $dek_keluhan['hasil'],
-            'catatan'   => $dek_catatan['hasil'],
-            'status'    => $dek_status['hasil'],
-            'terbuka'   => $dek_nama['berhasil']
+            'id'       => $row['id'],
+            'tiket'    => $row['kode_tiket'],
+            'tanggal'  => date("d M Y, H:i", strtotime($row['tanggal_lapor'])),
+            'nama'     => $dek_nama['hasil'],
+            'nim'      => $dek_nim['hasil'],
+            'kontak'   => $dek_kontak['hasil'],
+            'kategori' => $dek_kategori['hasil'],
+            'keluhan'  => $dek_keluhan['hasil'],
+            'catatan'  => $dek_catatan['hasil'],
+            'status'   => $dek_status['hasil'],
+            'terbuka'  => $dek_nama['berhasil']
         ];
     }
 }
